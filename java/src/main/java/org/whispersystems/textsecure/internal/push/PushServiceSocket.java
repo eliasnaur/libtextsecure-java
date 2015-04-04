@@ -74,6 +74,7 @@ public class PushServiceSocket {
 
   private static final String TAG = PushServiceSocket.class.getSimpleName();
 
+  private static final String CREATE_ACCOUNT_ID_PATH    = "/v1/accounts/id/code/%s";
   private static final String CREATE_ACCOUNT_SMS_PATH   = "/v1/accounts/sms/code/%s";
   private static final String CREATE_ACCOUNT_VOICE_PATH = "/v1/accounts/voice/code/%s";
   private static final String VERIFY_ACCOUNT_PATH       = "/v1/accounts/code/%s";
@@ -104,6 +105,11 @@ public class PushServiceSocket {
     this.serviceUrl          = serviceUrl;
     this.credentialsProvider = credentialsProvider;
     this.trustManagers       = BlacklistingTrustManager.createFor(trustStore);
+  }
+
+  public String createIdAccount() throws IOException {
+    String responseText = makeRequest(String.format(CREATE_ACCOUNT_ID_PATH, credentialsProvider.getUser()), "GET", null);
+    return JsonUtil.fromJson(responseText, DeviceCode.class).getVerificationCode();
   }
 
   public void createAccount(boolean voice) throws IOException {

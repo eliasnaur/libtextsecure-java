@@ -86,6 +86,10 @@ public class TextSecureAccountManager {
     }
   }
 
+  public String createIdAccount() throws IOException {
+    return this.pushServiceSocket.createIdAccount();
+  }
+
   /**
    * Request an SMS verification code.  On success, the server will send
    * an SMS verification code to this TextSecure user.
