@@ -20,7 +20,7 @@ import static org.whispersystems.textsecure.internal.websocket.WebSocketProtos.W
 public class WebSocketConnection implements WebSocketEventListener {
 
   private static final String TAG                       = WebSocketConnection.class.getSimpleName();
-  private static final int    KEEPALIVE_TIMEOUT_SECONDS = 55;
+  private static final int    KEEPALIVE_TIMEOUT_SECONDS = 10*60;
 
   private final LinkedList<WebSocketRequestMessage> incomingRequests = new LinkedList<>();
 
