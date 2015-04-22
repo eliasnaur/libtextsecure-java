@@ -3,6 +3,7 @@ package org.whispersystems.textsecure.internal.websocket;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.whispersystems.libaxolotl.logging.Log;
+import org.whispersystems.textsecure.api.TextSecureMessagePipe.MessagePipeCallback;
 import org.whispersystems.textsecure.api.push.TrustStore;
 import org.whispersystems.textsecure.api.util.CredentialsProvider;
 import org.whispersystems.textsecure.internal.util.Util;
@@ -20,7 +21,7 @@ import static org.whispersystems.textsecure.internal.websocket.WebSocketProtos.W
 public class WebSocketConnection implements WebSocketEventListener {
 
   private static final String TAG                       = WebSocketConnection.class.getSimpleName();
-  private static final int    KEEPALIVE_TIMEOUT_SECONDS = 10*60;
+  private static final int    KEEPALIVE_TIMEOUT_SECONDS = 55;
 
   private final LinkedList<WebSocketRequestMessage> incomingRequests = new LinkedList<>();
 
@@ -61,7 +62,7 @@ public class WebSocketConnection implements WebSocketEventListener {
     }
   }
 
-  public synchronized WebSocketRequestMessage readRequest(long timeoutMillis)
+  public synchronized WebSocketRequestMessage readRequest(long timeoutMillis, MessagePipeCallback callback)
       throws TimeoutException, IOException
   {
     if (client == null) {
@@ -71,7 +72,15 @@ public class WebSocketConnection implements WebSocketEventListener {
     long startTime = System.currentTimeMillis();
 
     while (client != null && incomingRequests.isEmpty() && elapsedTime(startTime) < timeoutMillis) {
+		boolean sleep = keepAliveSender != null;
+		if (sleep)
+			callback.sleep();
+		try {
       Util.wait(this, Math.max(1, timeoutMillis - elapsedTime(startTime)));
+		} finally {
+			if (sleep)
+				callback.wakeup();
+		}
     }
 
     if      (incomingRequests.isEmpty() && client == null) throw new IOException("Connection closed!");
@@ -92,7 +101,7 @@ public class WebSocketConnection implements WebSocketEventListener {
     client.sendMessage(message.toByteArray());
   }
 
-  private synchronized void sendKeepAlive() throws IOException {
+  public synchronized void sendKeepAlive() throws IOException {
     if (keepAliveSender != null) {
       client.sendMessage(WebSocketMessage.newBuilder()
                                          .setType(WebSocketMessage.Type.REQUEST)
@@ -143,7 +152,8 @@ public class WebSocketConnection implements WebSocketEventListener {
     if (client != null && keepAliveSender == null) {
       Log.w(TAG, "onConnected()");
       keepAliveSender = new KeepAliveSender();
-      keepAliveSender.start();
+	  notifyAll();
+      //keepAliveSender.start();
     }
   }
 

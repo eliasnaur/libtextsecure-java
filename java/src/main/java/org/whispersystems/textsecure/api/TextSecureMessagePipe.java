@@ -69,7 +69,7 @@ public class TextSecureMessagePipe {
       throws TimeoutException, IOException, InvalidVersionException
   {
     while (true) {
-      WebSocketRequestMessage  request  = websocket.readRequest(unit.toMillis(timeout));
+      WebSocketRequestMessage  request  = websocket.readRequest(unit.toMillis(timeout), callback);
       WebSocketResponseMessage response = createWebSocketResponse(request);
 
       try {
@@ -119,11 +119,18 @@ public class TextSecureMessagePipe {
    */
   public static interface MessagePipeCallback {
     public void onMessage(TextSecureEnvelope envelope);
+	void sleep();
+	void wakeup();
   }
 
   private static class NullMessagePipeCallback implements MessagePipeCallback {
+	@Override public void sleep() {}
+	@Override public void wakeup() {}
     @Override
     public void onMessage(TextSecureEnvelope envelope) {}
   }
 
+  public void sendKeepAlive() throws IOException {
+	  websocket.sendKeepAlive();
+  }
 }
