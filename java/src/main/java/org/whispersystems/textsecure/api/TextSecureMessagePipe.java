@@ -25,8 +25,6 @@ public class TextSecureMessagePipe {
   TextSecureMessagePipe(WebSocketConnection websocket, CredentialsProvider credentialsProvider) {
     this.websocket           = websocket;
     this.credentialsProvider = credentialsProvider;
-
-    this.websocket.connect();
   }
 
   /**

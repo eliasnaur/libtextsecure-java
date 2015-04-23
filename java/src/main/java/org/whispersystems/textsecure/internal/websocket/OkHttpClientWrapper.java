@@ -48,8 +48,8 @@ public class OkHttpClientWrapper implements WebSocketListener {
     this.listener            = listener;
   }
 
-  public void connect(final int timeout, final int readTimeout, final TimeUnit timeUnit) {
-    new Thread() {
+  public void connect(final int timeout, final int readTimeout, final TimeUnit timeUnit) throws IOException {
+  /*  new Thread() {
       @Override
       public void run() {
         int attempt = 0;
@@ -76,7 +76,23 @@ public class OkHttpClientWrapper implements WebSocketListener {
           Util.sleep(Math.min(++attempt * 200, TimeUnit.SECONDS.toMillis(15)));
         }
       }
-    }.start();
+    }.start();*/
+	  webSocket = newSocket(timeout, readTimeout, timeUnit);
+	  if (webSocket == null)
+		  return;
+	  Response response = webSocket.connect(OkHttpClientWrapper.this);
+
+	  if (response.code() == 101) {
+		  synchronized (OkHttpClientWrapper.this) {
+			  if (closed) webSocket.close(1000, "OK");
+			  else        connected = true;
+		  }
+
+		  listener.onConnected();
+		  return;
+	  }
+
+	  Log.w(TAG, "WebSocket Response: " + response.code());
   }
 
   public synchronized void disconnect() {
