@@ -48,13 +48,13 @@ public class OkHttpClientWrapper implements WebSocketListener {
     this.listener            = listener;
   }
 
-  public void connect(final int timeout, final TimeUnit timeUnit) {
+  public void connect(final int timeout, final int readTimeout, final TimeUnit timeUnit) {
     new Thread() {
       @Override
       public void run() {
         int attempt = 0;
 
-        while ((webSocket = newSocket(timeout, timeUnit)) != null) {
+        while ((webSocket = newSocket(timeout, readTimeout, timeUnit)) != null) {
           try {
             Response response = webSocket.connect(OkHttpClientWrapper.this);
 
@@ -117,14 +117,14 @@ public class OkHttpClientWrapper implements WebSocketListener {
     listener.onClose();
   }
 
-  private synchronized WebSocket newSocket(int timeout, TimeUnit unit) {
+  private synchronized WebSocket newSocket(int timeout, int readTimeout, TimeUnit unit) {
     if (closed) return null;
 
     String       filledUri    = String.format(uri, credentialsProvider.getUser(), credentialsProvider.getPassword());
     OkHttpClient okHttpClient = new OkHttpClient();
 
     okHttpClient.setSslSocketFactory(createTlsSocketFactory(trustStore));
-    okHttpClient.setReadTimeout(timeout, unit);
+    okHttpClient.setReadTimeout(readTimeout, unit);
     okHttpClient.setConnectTimeout(timeout, unit);
 
     return WebSocket.newWebSocket(okHttpClient, new Request.Builder().url(filledUri).build());

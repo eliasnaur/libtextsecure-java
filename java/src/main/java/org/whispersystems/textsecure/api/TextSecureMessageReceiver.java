@@ -101,8 +101,8 @@ public class TextSecureMessageReceiver {
    *
    * @return A TextSecureMessagePipe for receiving TextSecure messages.
    */
-  public TextSecureMessagePipe createMessagePipe() {
-    WebSocketConnection webSocket = new WebSocketConnection(url, trustStore, credentialsProvider);
+  public TextSecureMessagePipe createMessagePipe(int readTimeoutSeconds) {
+    WebSocketConnection webSocket = new WebSocketConnection(url, trustStore, credentialsProvider, readTimeoutSeconds);
     return new TextSecureMessagePipe(webSocket, credentialsProvider);
   }
 

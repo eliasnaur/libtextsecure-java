@@ -28,11 +28,13 @@ public class WebSocketConnection implements WebSocketEventListener {
   private final String              wsUri;
   private final TrustStore          trustStore;
   private final CredentialsProvider credentialsProvider;
+  private final int					readTimeoutSeconds;
 
   private OkHttpClientWrapper client;
   private KeepAliveSender     keepAliveSender;
 
-  public WebSocketConnection(String httpUri, TrustStore trustStore, CredentialsProvider credentialsProvider) {
+  public WebSocketConnection(String httpUri, TrustStore trustStore, CredentialsProvider credentialsProvider, int readTimeoutSeconds) {
+	this.readTimeoutSeconds = readTimeoutSeconds;
     this.trustStore          = trustStore;
     this.credentialsProvider = credentialsProvider;
     this.wsUri               = httpUri.replace("https://", "wss://")
@@ -44,7 +46,7 @@ public class WebSocketConnection implements WebSocketEventListener {
 
     if (client == null) {
       client = new OkHttpClientWrapper(wsUri, trustStore, credentialsProvider, this);
-      client.connect(KEEPALIVE_TIMEOUT_SECONDS + 10, TimeUnit.SECONDS);
+      client.connect(KEEPALIVE_TIMEOUT_SECONDS + 10, readTimeoutSeconds, TimeUnit.SECONDS);
     }
   }
 
