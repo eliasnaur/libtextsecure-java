@@ -101,7 +101,7 @@ public class TextSecureMessageReceiver {
    *
    * @return A TextSecureMessagePipe for receiving TextSecure messages.
    */
-  public TextSecureMessagePipe createMessagePipe(int readTimeoutSeconds) throws IOException {
+  public TextSecureMessagePipe createMessagePipe(int readTimeoutSeconds) {
     WebSocketConnection webSocket = new WebSocketConnection(url, trustStore, credentialsProvider, readTimeoutSeconds);
     TextSecureMessagePipe pipe = new TextSecureMessagePipe(webSocket, credentialsProvider);
 	webSocket.connect();

@@ -41,7 +41,7 @@ public class WebSocketConnection implements WebSocketEventListener {
                                       .replace("http://", "ws://") + "/v1/websocket/?login=%s&password=%s";
   }
 
-  public synchronized void connect() throws IOException {
+  public synchronized void connect() {
     Log.w(TAG, "WSC connect()...");
 
     if (client == null) {
@@ -104,6 +104,7 @@ public class WebSocketConnection implements WebSocketEventListener {
   }
 
   public synchronized void sendKeepAlive() throws IOException {
+	Log.i(TAG, "keep alive: " + (keepAliveSender != null));
     if (keepAliveSender != null) {
       client.sendMessage(WebSocketMessage.newBuilder()
                                          .setType(WebSocketMessage.Type.REQUEST)

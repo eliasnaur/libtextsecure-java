@@ -116,7 +116,8 @@ public class TextSecureMessagePipe {
    * received.
    */
   public static interface MessagePipeCallback {
-    public void onMessage(TextSecureEnvelope envelope);
+    void onConnected();
+    void onMessage(TextSecureEnvelope envelope);
 	void sleep();
 	void wakeup();
   }
@@ -126,6 +127,7 @@ public class TextSecureMessagePipe {
 	@Override public void wakeup() {}
     @Override
     public void onMessage(TextSecureEnvelope envelope) {}
+    @Override public void onConnected() {}
   }
 
   public void sendKeepAlive() throws IOException {
