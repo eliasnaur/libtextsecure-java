@@ -96,7 +96,6 @@ public class Util {
     }
   }
 
-
   public static void copy(InputStream in, OutputStream out) throws IOException {
     byte[] buffer = new byte[4096];
     int read;
@@ -124,5 +123,4 @@ public class Util {
       throw new AssertionError(e);
     }
   }
-
 }
