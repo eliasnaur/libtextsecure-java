@@ -61,15 +61,15 @@ public class TextSecureAccountManager {
   /**
    * Construct a TextSecureAccountManager.
    *
-   * @param url The URL for the TextSecure server.
+   * @param urls The URLs for the TextSecure server.
    * @param trustStore The {@link org.whispersystems.textsecure.api.push.TrustStore} for the TextSecure server's TLS certificate.
    * @param user A TextSecure phone number.
    * @param password A TextSecure password.
    */
-  public TextSecureAccountManager(String url, TrustStore trustStore,
+  public TextSecureAccountManager(String[] urls, TrustStore trustStore,
                                   String user, String password)
   {
-    this.pushServiceSocket = new PushServiceSocket(url, trustStore, new StaticCredentialsProvider(user, password, null));
+    this.pushServiceSocket = new PushServiceSocket(urls, trustStore, new StaticCredentialsProvider(user, password, null));
     this.user              = user;
   }
 

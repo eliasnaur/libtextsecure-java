@@ -77,7 +77,7 @@ public class TextSecureMessageSender {
   /**
    * Construct a TextSecureMessageSender.
    *
-   * @param url The URL of the TextSecure server.
+   * @param urls The URLs of the TextSecure server.
    * @param trustStore The trust store containing the TextSecure server's signing TLS certificate.
    * @param user The TextSecure username (eg phone number).
    * @param password The TextSecure user's password.
@@ -85,12 +85,12 @@ public class TextSecureMessageSender {
    * @param eventListener An optional event listener, which fires whenever sessions are
    *                      setup or torn down for a recipient.
    */
-  public TextSecureMessageSender(String url, TrustStore trustStore,
+  public TextSecureMessageSender(String[] urls, TrustStore trustStore,
                                  String user, String password,
                                  AxolotlStore store,
                                  Optional<EventListener> eventListener)
   {
-    this.socket        = new PushServiceSocket(url, trustStore, new StaticCredentialsProvider(user, password, null));
+    this.socket        = new PushServiceSocket(urls, trustStore, new StaticCredentialsProvider(user, password, null));
     this.store         = store;
     this.localAddress  = new TextSecureAddress(user);
     this.eventListener = eventListener;

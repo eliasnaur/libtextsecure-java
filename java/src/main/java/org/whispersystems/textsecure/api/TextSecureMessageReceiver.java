@@ -45,38 +45,38 @@ public class TextSecureMessageReceiver {
 
   private final PushServiceSocket   socket;
   private final TrustStore          trustStore;
-  private final String              url;
+  private final String[]              urls;
   private final CredentialsProvider credentialsProvider;
 
   /**
    * Construct a TextSecureMessageReceiver.
    *
-   * @param url The URL of the TextSecure server.
+   * @param urls The URLs of the TextSecure server.
    * @param trustStore The {@link org.whispersystems.textsecure.api.push.TrustStore} containing
    *                   the server's TLS signing certificate.
    * @param user The TextSecure user's username (eg. phone number).
    * @param password The TextSecure user's password.
    * @param signalingKey The 52 byte signaling key assigned to this user at registration.
    */
-  public TextSecureMessageReceiver(String url, TrustStore trustStore,
+  public TextSecureMessageReceiver(String[] urls, TrustStore trustStore,
                                    String user, String password, String signalingKey)
   {
-    this(url, trustStore, new StaticCredentialsProvider(user, password, signalingKey));
+    this(urls, trustStore, new StaticCredentialsProvider(user, password, signalingKey));
   }
 
   /**
    * Construct a TextSecureMessageReceiver.
    *
-   * @param url The URL of the TextSecure server.
+   * @param urls The URLs of the TextSecure server.
    * @param trustStore The {@link org.whispersystems.textsecure.api.push.TrustStore} containing
    *                   the server's TLS signing certificate.
    * @param credentials The TextSecure user's credentials.
    */
-  public TextSecureMessageReceiver(String url, TrustStore trustStore, CredentialsProvider credentials) {
-    this.url                 = url;
+  public TextSecureMessageReceiver(String[] urls, TrustStore trustStore, CredentialsProvider credentials) {
+    this.urls                = urls;
     this.trustStore          = trustStore;
     this.credentialsProvider = credentials;
-    this.socket              = new PushServiceSocket(url, trustStore, credentials);
+    this.socket              = new PushServiceSocket(urls, trustStore, credentials);
   }
 
   /**
@@ -124,10 +124,11 @@ public class TextSecureMessageReceiver {
    * @return A TextSecureMessagePipe for receiving TextSecure messages.
    */
   public TextSecureMessagePipe createMessagePipe(int readTimeoutSeconds) throws IOException {
-    WebSocketConnection webSocket = new WebSocketConnection(url, trustStore, credentialsProvider, readTimeoutSeconds);
+    /*WebSocketConnection webSocket = new WebSocketConnection(urls, trustStore, credentialsProvider, readTimeoutSeconds);
     TextSecureMessagePipe pipe = new TextSecureMessagePipe(webSocket, credentialsProvider);
 	webSocket.connect();
-	return pipe;
+	return pipe;*/
+    throw new RuntimeException("not available");
   }
 
   public List<TextSecureEnvelope> retrieveMessages() throws IOException {

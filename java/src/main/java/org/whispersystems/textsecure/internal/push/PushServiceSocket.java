@@ -58,6 +58,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -100,13 +101,15 @@ public class PushServiceSocket {
 
   private static final boolean ENFORCE_SSL = true;
 
-  private final String              serviceUrl;
+  private final String[]              serviceUrls;
   private final TrustManager[]      trustManagers;
   private final CredentialsProvider credentialsProvider;
 
-  public PushServiceSocket(String serviceUrl, TrustStore trustStore, CredentialsProvider credentialsProvider)
+  private static final AtomicInteger lastServiceUrl = new AtomicInteger();
+
+  public PushServiceSocket(String[] serviceUrls, TrustStore trustStore, CredentialsProvider credentialsProvider)
   {
-    this.serviceUrl          = serviceUrl;
+    this.serviceUrls          = serviceUrls;
     this.credentialsProvider = credentialsProvider;
     this.trustManagers       = BlacklistingTrustManager.createFor(trustStore);
   }
@@ -546,38 +549,50 @@ public class PushServiceSocket {
       SSLContext context = SSLContext.getInstance("TLS");
       context.init(null, trustManagers, null);
 
-      URL url = new URL(String.format("%s%s", serviceUrl, urlFragment));
-      Log.w(TAG, "Push service URL: " + serviceUrl);
-      Log.w(TAG, "Opening URL: " + url);
+      int startIdx = lastServiceUrl.get();
+      IOException connectException = null;
+      for (int i = 0; i < serviceUrls.length; i++) {
+          try {
+              int idx = (i+startIdx)%serviceUrls.length;
+              URL url = new URL(String.format("%s%s", serviceUrls[idx], urlFragment));
+              Log.w(TAG, "Push service URL: " + serviceUrls[idx]);
+              Log.w(TAG, "Opening URL: " + url);
 
-      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+              HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-      if (ENFORCE_SSL) {
-        ((HttpsURLConnection) connection).setSSLSocketFactory(context.getSocketFactory());
-        ((HttpsURLConnection) connection).setHostnameVerifier(new StrictHostnameVerifier());
+              if (ENFORCE_SSL) {
+                  ((HttpsURLConnection) connection).setSSLSocketFactory(context.getSocketFactory());
+                  ((HttpsURLConnection) connection).setHostnameVerifier(new StrictHostnameVerifier());
+              }
+
+              connection.setRequestMethod(method);
+              connection.setRequestProperty("Content-Type", "application/json");
+
+              if (credentialsProvider.getPassword() != null) {
+                  connection.setRequestProperty("Authorization", getAuthorizationHeader());
+              }
+
+              if (body != null) {
+                  connection.setDoOutput(true);
+              }
+
+              connection.connect();
+
+              if (body != null) {
+                  Log.w(TAG, method + "  --  " + body);
+                  OutputStream out = connection.getOutputStream();
+                  out.write(body.getBytes());
+                  out.close();
+              }
+
+              lastServiceUrl.compareAndSet(startIdx, idx);
+              return connection;
+          } catch (IOException e) {
+              if (connectException == null)
+                connectException = e;
+          }
       }
-
-      connection.setRequestMethod(method);
-      connection.setRequestProperty("Content-Type", "application/json");
-
-      if (credentialsProvider.getPassword() != null) {
-        connection.setRequestProperty("Authorization", getAuthorizationHeader());
-      }
-
-      if (body != null) {
-        connection.setDoOutput(true);
-      }
-
-      connection.connect();
-
-      if (body != null) {
-        Log.w(TAG, method + "  --  " + body);
-        OutputStream out = connection.getOutputStream();
-        out.write(body.getBytes());
-        out.close();
-      }
-
-      return connection;
+      throw connectException;
     } catch (IOException e) {
       throw new PushNetworkException(e);
     } catch (NoSuchAlgorithmException | KeyManagementException e) {
